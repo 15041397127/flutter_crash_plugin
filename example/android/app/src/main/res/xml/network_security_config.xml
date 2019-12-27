@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 网络安全配置 -->
+<network-security-config>
+    <!-- 允许明文传输数据 -->
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- 将Bugly的域名加入白名单 -->
+        <domain includeSubdomains="true">android.bugly.qq.com</domain>
+    </domain-config>
+</network-security-config>
