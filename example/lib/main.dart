@@ -3,52 +3,106 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_crash_plugin/flutter_crash_plugin.dart';
+import 'dart:io';
 
-void main() => runApp(MyApp());
-
-class MyApp extends StatefulWidget {
-  @override
-  _MyAppState createState() => _MyAppState();
+bool get isInDebugMode {
+  bool inDebugMode = false;
+  assert(inDebugMode = true);
+  return inDebugMode;
 }
 
-class _MyAppState extends State<MyApp> {
-  String _platformVersion = 'Unknown';
+/// Reports [error] along with its [stackTrace] to Sentry.io.
+Future<Null> _reportError(dynamic error, dynamic stackTrace) async {
+  print('Caught error: $error');
 
+  if (isInDebugMode) {
+    print(stackTrace);
+    print('In dev mode. Not sending report to Bugly.');
+    return;
+  }
+
+  print('Reporting to Bugly...');
+
+  FlutterCrashPlugin.postException(error, stackTrace);
+
+}
+
+Future<Null> main() async {
+  // This captures errors reported by the Flutter framework.
+  FlutterError.onError = (FlutterErrorDetails details) async {
+    Zone.current.handleUncaughtError(details.exception, details.stack);
+  };
+
+  runZoned<Future<Null>>(() async {
+    runApp(MyApp());
+  }, onError: (error, stackTrace) async {
+    await _reportError(error, stackTrace);
+  });
+}
+
+class MyApp extends StatefulWidget {
+  // This widget is the root of your application.
+  @override
+  State<StatefulWidget> createState() => _MyAppState();
+}
+
+
+class _MyAppState extends State<MyApp> {
   @override
   void initState() {
-    super.initState();
-    initPlatformState();
-  }
-
-  // Platform messages are asynchronous, so we initialize in an async method.
-  Future<void> initPlatformState() async {
-    String platformVersion;
-    // Platform messages may fail, so we use a try/catch PlatformException.
-    try {
-      platformVersion = await FlutterCrashPlugin.platformVersion;
-    } on PlatformException {
-      platformVersion = 'Failed to get platform version.';
+    if(Platform.isAndroid){
+      FlutterCrashPlugin.setUp('43eed8b173');
+    }else if(Platform.isIOS){
+      FlutterCrashPlugin.setUp('088aebe0d5');
     }
-
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
-    if (!mounted) return;
-
-    setState(() {
-      _platformVersion = platformVersion;
-    });
+    super.initState();
   }
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Plugin example app'),
-        ),
-        body: Center(
-          child: Text('Running on: $_platformVersion\n'),
+      title: 'Flutter Demo',
+      theme: ThemeData(
+
+        primarySwatch: Colors.blue,
+      ),
+      home: MyHomePage(),
+    );
+  }
+}
+
+
+class MyHomePage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Crashy'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            RaisedButton(
+              child: Text('Dart exception'),
+              elevation: 1.0,
+              onPressed: () {
+                throw StateError('This is a Dart exception.');
+              },
+            ),
+            new RaisedButton(
+              child: Text('async Dart exception'),
+              elevation: 1.0,
+              onPressed: () async {
+                foo() async {
+                  throw StateError('This is an async Dart exception.');
+                }
+                bar() async {
+                  await foo();
+                }
+                await bar();
+              },
+            )
+          ],
         ),
       ),
     );

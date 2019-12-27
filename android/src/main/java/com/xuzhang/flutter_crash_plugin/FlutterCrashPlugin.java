@@ -1,10 +1,13 @@
 package com.xuzhang.flutter_crash_plugin;
 
+import android.app.Activity;
 import android.support.annotation.NonNull;
 
 import com.tencent.bugly.crashreport.CrashReport;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
+import io.flutter.embedding.engine.plugins.activity.ActivityAware;
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
@@ -14,12 +17,13 @@ import io.flutter.plugin.common.PluginRegistry.Registrar;
 /**
  * FlutterCrashPlugin
  */
-public class FlutterCrashPlugin implements FlutterPlugin, MethodCallHandler {
-    @Override
-    public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
-        final MethodChannel channel = new MethodChannel(flutterPluginBinding.getFlutterEngine().getDartExecutor(), "flutter_crash_plugin");
-        channel.setMethodCallHandler(new FlutterCrashPlugin(registrar));
-    }
+public class FlutterCrashPlugin implements  MethodCallHandler {
+
+    //注册器，通常为MainActivity
+     public final Registrar registrar;
+     FlutterCrashPlugin(Registrar registrar) { this.registrar = registrar; }
+
+
 
     // This static function is optional and equivalent to onAttachedToEngine. It supports the old
     // pre-Flutter-1.12 Android projects. You are encouraged to continue supporting
@@ -32,12 +36,13 @@ public class FlutterCrashPlugin implements FlutterPlugin, MethodCallHandler {
     // in the same class.
 
     //注册器 通常为MainActivity
-    public final Registrar registrar;
-
-    private FlutterCrashPlugin(Registrar registrar) {
-
-        this.registrar = registrar;
-    }
+//    public final Registrar registrar;
+//
+//    private FlutterCrashPlugin(Registrar registrar) {
+//
+//        this.registrar = registrar;
+//    }
+//    private FlutterCrashPlugin(Registrar registrar) { this.registrar = registrar; }
 
 
     public static void registerWith(Registrar registrar) {
@@ -75,9 +80,7 @@ public class FlutterCrashPlugin implements FlutterPlugin, MethodCallHandler {
         }
     }
 
-    @Override
-    public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
 
 
-    }
+
 }
